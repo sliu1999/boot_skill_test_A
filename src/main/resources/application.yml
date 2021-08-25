@@ -1,0 +1,40 @@
+server:
+  port: 8088
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://47.117.128.180:3306/boot_c?serverTimezone=Asia/Shanghai&useSSL=false&autoReconnect=true&allowMultiQueries=true
+    username: root
+    password: 12345678
+  mail:
+    host: smtp.qq.com
+    port: 465
+    username: liushuai152987@qq.com
+    password: rjijfgmaudnqefah
+    default-encoding: UTF-8
+    properties.mail.smtp.socketFactory.class: javax.net.ssl.SSLSocketFactory
+    properties.mail.debug: true
+  application:
+    name: mq-sender-demo
+#  rabbitmq:
+#    host: 192.168.1.17
+#    port: 5672
+#    username: sliu
+#    password: admin123
+#    virtual-host: host1
+#    #开启简单消息确认模式
+#    publisher-confirm-type: simple
+#    #开启return监听机制
+#    publisher-returns: true
+#      # 手动ACK 不开启自动ACK模式,目的是防止报错后未正确处理消息丢失 默认 为 none
+#    listener:
+#      simple:
+#        acknowledge-mode: manual
+#  redis:
+#    host: 192.168.1.15
+#    password: 123456
+#    port: 6379
+
+
+

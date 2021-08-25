@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>websocket通讯</title>
+</head>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+<script>
+    var socket;
+    function openSocket() {
+        if(typeof(WebSocket) == "undefined") {
+            console.log("您的浏览器不支持WebSocket");
+        }else{
+            console.log("您的浏览器支持WebSocket");
+            //实现化WebSocket对象，指定要连接的服务器地址与端口  建立连接
+            //等同于socket = new WebSocket("ws://localhost:8888/xxxx/im/25");
+            //var socketUrl="${request.contextPath}/im/"+$("#userId").val();
+            var socketUrl="http://localhost:8080/websocket/1/"+$("#userId").val();
+            socketUrl=socketUrl.replace("https","ws").replace("http","ws");
+            console.log(socketUrl);
+            if(socket!=null){
+                socket.close();
+                socket=null;
+            }
+            socket = new WebSocket(socketUrl);
+            //打开事件
+            socket.onopen = function() {
+                console.log("websocket已打开");
+                setMessageInnerHTML("打开websocket连接...")
+                //socket.send("这是来自客户端的消息" + location.href + new Date());
+            };
+            //获得消息事件
+            socket.onmessage = function(msg) {
+                console.log(msg.data);
+                var data = JSON.parse(msg.data);
+                //发现消息进入
+                //if msgType == 1 fromUserId上线
+                //if msgType == 2 fromUserId下线
+                //if msgType == 3
+                    //if toUserId == 'all' fromUserId发送给所有人的消息
+                    //if toUserId == 'xxx' fromUserId发送给toUserId的消息
+                if(data.msgType === '1'){
+                    if(data.fromUserId == $("#userId").val()){
+                        setMessageInnerHTML("连接成功")
+                    }else {
+                        setMessageInnerHTML(data.fromUserId+"已上线")
+                    }
+                    console.log(data.nowUserId)
+                }else if(data.msgType === '2'){
+                    if(data.fromUserId != $("#userId").val()){
+                        setMessageInnerHTML(data.fromUserId+"已下线")
+                    }
+                    console.log(data.nowUserId)
+                }else if(data.msgType === '3'){
+                    if(data.toUserId == 'all'){
+                        if(data.fromUserId != $("#userId").val()){
+                            setMessageInnerHTML("来自"+data.fromUserId+"的消息："+data.contentText)
+                        }
+                    }else{
+                        if(data.toUserId == $("#userId").val()){
+                            setMessageInnerHTML("来自"+data.fromUserId+"的消息："+data.contentText)
+                        }
+                    }
+                }
+            };
+            //关闭事件
+            socket.onclose = function() {
+                console.log("websocket已关闭");
+            };
+            //发生了错误事件
+            socket.onerror = function() {
+                console.log("websocket发生了错误");
+            }
+        }
+    }
+    function sendMessage() {
+        if(typeof(WebSocket) == "undefined") {
+            console.log("您的浏览器不支持WebSocket");
+        }else {
+            console.log("您的浏览器支持WebSocket");
+            console.log('{"toUserId":"'+$("#toUserId").val()+'","contentText":"'+$("#contentText").val()+'"}');
+            setMessageInnerHTML("发送消息："+$("#contentText").val()+"给"+$("#toUserId").val());
+            socket.send('{"toUserId":"'+$("#toUserId").val()+'","contentText":"'+$("#contentText").val()+'"}');
+
+        }
+    }
+    function setMessageInnerHTML(innerHTML) {
+        document.getElementById('message').innerHTML += innerHTML + '<br/>';
+    }
+</script>
+<body>
+<p>【userId】：<div><input id="userId" name="userId" type="text" value="10"></div>
+<p>【toUserId】：<div><input id="toUserId" name="toUserId" type="text" value="20"></div>
+<p>【toUserIdMessage】：<div><input id="contentText" name="contentText" type="text" value="hello websocket"></div>
+<p>【操作】：<div><input type="button" value="开启socket" onclick="openSocket()"/></div>
+<p>【操作】：<div><input type="button" value="发送消息"  onclick="sendMessage()"/></div>
+<div id="message" style="text-align: center;"></div>
+</body>
+
+</html>

@@ -1,55 +1,102 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>websocket.html</title>
-
-    <meta name="keywords" content="keyword1,keyword2,keyword3">
-    <meta name="description" content="this is my page">
-    <meta name="content-type" content="text/html" charset="UTF-8">
-    <!--<link rel="stylesheet" type="text/css" href="./styles.css">-->
-    <!-- 独立css -->
+    <meta charset="utf-8">
+    <title>websocket实时通讯</title>
 </head>
-<body>
-<div>
-    <p id="response"></p>
-</div>
-<!-- 独立JS -->
-<script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js" charset="utf-8"></script>
-<!--<script type="text/javascript" src="webSocket.js" charset="utf-8"></script>-->
-<script type="text/javascript" src="sockjs.min.js" charset="utf-8"></script>
-<script type="text/javascript" src="stomp.min.js" charset="utf-8"></script>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
 <script>
-    var stompClient = null;
-    //加载完浏览器后  调用connect（），打开双通道
-    $(function(){
-        //打开双通道
-        connect()
-    })
-    //强制关闭浏览器  调用websocket.close（）,进行正常关闭
-    window.onunload = function() {
-        disconnect()
-    }
-    function connect(){
-        var socket = new SockJS('http://localhost:8080/my-websocket'); //连接SockJS的endpoint名称为"my-websocket"
-        stompClient = Stomp.over(socket);//使用STMOP子协议的WebSocket客户端
-        stompClient.connect({},function(frame){//连接WebSocket服务端
-            console.log('Connected:' + frame);
-            //通过stompClient.subscribe订阅/topic/hello 目标(destination)发送的消息
-            stompClient.subscribe('/topic/hello',function(response){
-                var code=JSON.parse(response.body);
-                console.log(code)
-            });
-        });
-    }
-    //关闭双通道
-    function disconnect(){
-        if(stompClient != null) {
-            stompClient.disconnect();
+    var socket;
+    //打开socket连接
+    function openSocket() {
+        if(typeof(WebSocket) == "undefined") {
+            console.log("您的浏览器不支持WebSocket");
+        }else{
+            console.log("您的浏览器支持WebSocket");
+            //实现化WebSocket对象，指定要连接的服务器地址与端口  建立连接
+            //等同于socket = new WebSocket("ws://localhost:8888/xxxx/im/25");
+            //var socketUrl="${request.contextPath}/im/"+$("#userId").val();
+            var socketUrl="http://localhost:8099/websocket/1/"+$("#userId").val();
+            socketUrl=socketUrl.replace("https","ws").replace("http","ws");
+            console.log(socketUrl);
+            if(websocket!=null){
+                websocket.close();
+                websocket=null;
+            }
+            websocket = new WebSocket(socketUrl);
+            //打开事件
+            websocket.onopen = function() {
+                console.log("websocket已打开");
+                setMessageInnerHTML("打开websocket连接...")
+                //socket.send("这是来自客户端的消息" + location.href + new Date());
+            };
+            //获得消息事件
+            websocket.onmessage = function(msg) {
+                console.log(msg.data);
+                var data = JSON.parse(msg.data);
+                //发现消息进入
+                //if msgType == 1 fromUserId上线
+                //if msgType == 2 fromUserId下线
+                //if msgType == 3
+                    //if toUserId == 'all' fromUserId发送给所有人的消息
+                    //if toUserId == 'xxx' fromUserId发送给toUserId的消息
+                if(data.msgType === '1'){
+                    if(data.fromUserId == $("#userId").val()){
+                        setMessageInnerHTML("连接成功")
+                    }else {
+                        setMessageInnerHTML(data.fromUserId+"已上线")
+                    }
+                    console.log(data.nowUserId)
+                }else if(data.msgType === '2'){
+                    if(data.fromUserId != $("#userId").val()){
+                        setMessageInnerHTML(data.fromUserId+"已下线")
+                    }
+                    console.log(data.nowUserId)
+                }else if(data.msgType === '3'){
+                    if(data.toUserId == 'all'){
+                        if(data.fromUserId != $("#userId").val()){
+                            setMessageInnerHTML("来自"+data.fromUserId+"的消息："+data.contentText)
+                        }
+                    }else{
+                        if(data.toUserId == $("#userId").val()){
+                            setMessageInnerHTML("来自"+data.fromUserId+"的消息："+data.contentText)
+                        }
+                    }
+                }
+            };
+            //关闭事件
+            websocket.onclose = function() {
+                console.log("websocket已关闭");
+            };
+            //发生了错误事件
+            websocket.onerror = function() {
+                console.log("websocket发生了错误");
+            }
         }
-        console.log("Disconnected");
     }
+    //发送消息
+    function sendMessage() {
+        if(typeof(WebSocket) == "undefined") {
+            console.log("您的浏览器不支持WebSocket");
+        }else {
+            console.log("您的浏览器支持WebSocket");
+            console.log('{"toUserId":"'+$("#toUserId").val()+'","contentText":"'+$("#contentText").val()+'"}');
+            setMessageInnerHTML("发送消息："+$("#contentText").val()+"给"+$("#toUserId").val());
+            websocket.send('{"toUserId":"'+$("#toUserId").val()+'","contentText":"'+$("#contentText").val()+'"}');
 
+        }
+    }
+    function setMessageInnerHTML(innerHTML) {
+        document.getElementById('message').innerHTML += innerHTML + '<br/>';
+    }
 </script>
+<body>
+<p>【userId】：<div><input id="userId" name="userId" type="text" value="10"></div>
+<p>【toUserId】：<div><input id="toUserId" name="toUserId" type="text" value="20"></div>
+<p>【toUserIdMessage】：<div><input id="contentText" name="contentText" type="text" value="hello websocket"></div>
+<p>【操作】：<div><input type="button" value="开启socket" onclick="openSocket()"/></div>
+<p>【操作】：<div><input type="button" value="发送消息"  onclick="sendMessage()"/></div>
+<div id="message" style="text-align: center;"></div>
 </body>
+
 </html>

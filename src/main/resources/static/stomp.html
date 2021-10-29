@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试监听socket消息</title>
+
+    <meta name="keywords" content="keyword1,keyword2,keyword3">
+    <meta name="description" content="this is my page">
+    <meta name="content-type" content="text/html" charset="UTF-8">
+    <!--<link rel="stylesheet" type="text/css" href="./styles.css">-->
+    <!-- 独立css -->
+</head>
+<body>
+<div>
+    <button id="send" type="button">发送</button>
+    <p id="response"></p>
+</div>
+<!-- 独立JS -->
+<script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js" charset="utf-8"></script>
+<!--<script type="text/javascript" src="webSocket.js" charset="utf-8"></script>-->
+<script type="text/javascript" src="sockjs.min.js" charset="utf-8"></script>
+<script type="text/javascript" src="stomp.min.js" charset="utf-8"></script>
+<script>
+    var stompClient = null;
+    //加载完浏览器后  调用connect（），打开双通道
+    $(function(){
+        //打开双通道
+        connect();
+        $("#send").click(function () {
+            sendMessage();
+        })
+    })
+    //强制关闭浏览器  调用websocket.close（）,进行正常关闭
+    window.onunload = function() {
+        disconnect()
+    }
+    function connect(){
+        var socket = new SockJS('http://localhost:8099/my-websocket'); //连接SockJS的endpoint名称为"my-websocket"
+        stompClient = Stomp.over(socket);//使用STMOP子协议的WebSocket客户端
+        stompClient.connect({},function(frame){//连接WebSocket服务端
+            console.log('Connected:' + frame);
+            //通过stompClient.subscribe订阅/topic/greetings 目标(destination)发送的消息
+            stompClient.subscribe('/topic/greetings',function(response){
+                var code=JSON.parse(response.body);
+                console.log(code,"接收到的消息")
+            });
+        });
+    }
+    //关闭双通道
+    function disconnect(){
+        if(stompClient != null) {
+            stompClient.disconnect();
+        }
+        console.log("Disconnected");
+    }
+
+    //发送消息
+    function sendMessage(){
+        //destination url, headers 为发送信息的header，JavaScript 对象，可选参数,body 为发送信息的 body，字符串，可选参数
+        stompClient.send("/app/hello",{},JSON.stringify({"name":"测试消息发送"}));
+        console.log("sendMessage");
+    }
+
+</script>
+</body>
+</html>

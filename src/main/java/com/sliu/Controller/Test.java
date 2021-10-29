@@ -330,12 +330,20 @@ public class Test {
     }
 
 
+    /**
+     * 测试简单模式
+     * @throws IOException
+     */
     @GetMapping(value = "/mqSimpleTest")
     public void mqSimpleTest() throws IOException {
         mqService.sendMsg("simple");
 
     }
 
+    /**
+     *
+     * @throws IOException
+     */
     @GetMapping(value = "/mqRk1Test")
     public void mqRk1Test() throws IOException {
         mqService.sendMsg("rk1");
@@ -343,6 +351,9 @@ public class Test {
     }
 
 
+    /**
+     * 测试死信队列 延迟消息
+     */
     @GetMapping(value = "/sendDelayMessage")
     public void sendDelayMessage() {
         mqService.sendDelayMessage("rk1");

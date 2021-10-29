@@ -40,6 +40,7 @@ public class MqImpl implements MqService {
 
     }
 
+    //RabbitTemplate 实现了 AmqpTemplate
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
@@ -55,6 +56,12 @@ public class MqImpl implements MqService {
 
     }
 
+    /**
+     * 延迟队列实现 通过设置消息ttl存活时间
+     * 一个交换机direct 2个队列 k1  , k2
+     * queue 1 -k1为死信队列 设置消息ttl存活时间，设置消息过期后转发的交换机，设置消息过期后转发到交换机对应的k-k2
+     * @param msg
+     */
     @Override
     public void sendDelayMessage(String msg) {
         //这里的消息可以是任意对象，无需额外配置，直接传即可

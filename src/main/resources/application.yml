@@ -1,5 +1,5 @@
 server:
-  port: 8088
+  port: 8099
 
 spring:
   datasource:
@@ -17,24 +17,26 @@ spring:
     properties.mail.debug: true
   application:
     name: mq-sender-demo
-#  rabbitmq:
-#    host: 192.168.1.17
-#    port: 5672
-#    username: sliu
-#    password: admin123
-#    virtual-host: host1
-#    #开启简单消息确认模式
-#    publisher-confirm-type: simple
-#    #开启return监听机制
-#    publisher-returns: true
-#      # 手动ACK 不开启自动ACK模式,目的是防止报错后未正确处理消息丢失 默认 为 none
-#    listener:
-#      simple:
-#        acknowledge-mode: manual
-#  redis:
-#    host: 192.168.1.15
-#    password: 123456
-#    port: 6379
+  rabbitmq:
+    host: 192.168.1.17
+    port: 5672
+    username: sliu
+    password: admin123
+    virtual-host: host1
+    #开启简单消息确认机制 可以确认消息是否成功发送到交换机
+    publisher-confirm-type: simple
+    #开启return监听机制 启动消息失败返回，比如路由不到队列时触发回调，消息是否成功从交换机分发到队列
+    publisher-returns: true
+      # 手动ACK 不开启自动ACK模式,目的是防止报错后未正确处理消息丢失 默认 为 none
+    #开启手动确认模式 自动确认会导致如果出错，会一直循环消费此消息
+    #用于设置消息消费者如何通知 Rabbit 消息消费成功？
+    listener:
+      simple:
+        acknowledge-mode: manual
+  redis:
+    host: 192.168.1.15
+    password: 123456
+    port: 6379
 
 
 
